@@ -26,11 +26,11 @@ def PersonElement(root, name, detail):
     if detail:
         ae = SubElement(root, name)
         if detail.has_key("name"):
-            SubElement(ae, "{http://www.w3.org/2005/Atom}name").text = detail.name
+            SubElement(ae, "name").text = detail.name
         if detail.has_key("href"):
-            SubElement(ae, "{http://www.w3.org/2005/Atom}href").text = detail.href
+            SubElement(ae, "href").text = detail.href
         if detail.has_key("email"):
-            SubElement(ae, "{http://www.w3.org/2005/Atom}email").text = detail.email
+            SubElement(ae, "email").text = detail.email
 
 def SubElementIf(root, name, text):
     if text:
@@ -46,77 +46,81 @@ def CreateSourceElement(ee, feed):
     """Create an atom:source element in the provided entry element,
     based on the provided feed metadata.
     """
-    root = SubElement(ee, "{http://www.w3.org/2005/Atom}source")
-    TextElement(root, "{http://www.w3.org/2005/Atom}title", feed.title_detail)
+    if not feed: return
+    
+    root = SubElement(ee, "source")
+    TextElement(root, "title", feed.get("title_detail"))
     if feed.has_key("links"):
         for link in feed.links:
-            LinkElement(root, "{http://www.w3.org/2005/Atom}link", link)
+            LinkElement(root, "link", link)
             
-    TextElement(root, "{http://www.w3.org/2005/Atom}subtitle", feed.get("subtitle_detail"))
-    TextElement(root, "{http://www.w3.org/2005/Atom}rights", feed.get("rights_detail"))
-    SubElement(root, "{http://www.w3.org/2005/Atom}generator").text = "feedarchive"
-    SubElement(root, "{http://www.w3.org/2005/Atom}updated").text = rfc3339(time.time())
-    SubElementIf(root, "{http://www.w3.org/2005/Atom}id", feed.get("id"))
+    TextElement(root, "subtitle", feed.get("subtitle_detail"))
+    TextElement(root, "rights", feed.get("rights_detail"))
+    SubElement(root, "generator").text = "feedarchive"
+    SubElement(root, "updated").text = rfc3339(time.time())
+    SubElementIf(root, "id", feed.get("id"))
     
     if feed.has_key("image"):
-        SubElement(root, "{http://www.w3.org/2005/Atom}icon").text = feed.image.href
+        SubElement(root, "icon").text = feed.image.href
 
     if feed.has_key("tags"):
         for tag in feed.tags:
-            te = SubElement(root, "{http://www.w3.org/2005/Atom}category")
+            te = SubElement(root, "category")
             if tag.get("term"): te.attrib["term"] = tag.term
             if tag.get("scheme"): te.attrib["scheme"] = tag.scheme
             if tag.get("label"): te.attrib["label"] = tag.label
 
-    PersonElement(root, "{http://www.w3.org/2005/Atom}author", feed.get("author_detail"))
+    PersonElement(root, "author", feed.get("author_detail"))
 
 
-def GetFeedElement(id, source = None, entries = [], author = None, title = None, rights = None, image = None, tags = [], links = [], subtitle = None):
-    """Create an atom:feed element for the provided feed, with the provided
-    metadata dictionary.
+def GetFeedElement(feed):
+    """Create an atom:feed element for the provided feed.
 
     The provided feed must be in the format described at http://feedparser.org.
     """
 
-    root = Element("{http://www.w3.org/2005/Atom}feed")
-    TextElement(root, "{http://www.w3.org/2005/Atom}title", title)
-    for link in links:
-        LinkElement(root, "{http://www.w3.org/2005/Atom}link", link)
+    root = Element("feed")
+    root.attrib["xmlns"] = "http://www.w3.org/2005/Atom"
+
+    TextElement(root, "title", feed.feed.get("title_detail"))
+    if feed.feed.has_key("links"):
+        for link in feed.feed.links:
+            LinkElement(root, "link", link)
             
-    TextElement(root, "{http://www.w3.org/2005/Atom}subtitle", subtitle)
-    TextElement(root, "{http://www.w3.org/2005/Atom}rights", rights)
-    SubElement(root, "{http://www.w3.org/2005/Atom}generator").text = "feedarchive"
-    SubElement(root, "{http://www.w3.org/2005/Atom}updated").text = rfc3339(time.time())
-    SubElementIf(root, "{http://www.w3.org/2005/Atom}id", id)
+    TextElement(root, "subtitle", feed.feed.get("subtitle_detail"))
+    TextElement(root, "rights", feed.feed.get("rights_detail"))
+    SubElement(root, "generator").text = "feedarchive"
+    SubElement(root, "updated").text = rfc3339(time.time())
+    SubElementIf(root, "id", feed.feed.get("id"))
     
-    if image:
-        SubElement(root, "{http://www.w3.org/2005/Atom}icon").text = image.href
+    if feed.feed.has_key("image"):
+        SubElement(root, "icon").text = feed.feed.image.href
 
-    for tag in tags:
-        te = SubElement(root, "{http://www.w3.org/2005/Atom}category")
-        if tag.get("term"): te.attrib["term"] = tag.term
-        if tag.get("scheme"): te.attrib["scheme"] = tag.scheme
-        if tag.get("label"): te.attrib["label"] = tag.label
+    if feed.feed.has_key("tags"):
+        for tag in feed.feed.tags:
+            te = SubElement(root, "category")
+            if tag.get("term"): te.attrib["term"] = tag.term
+            if tag.get("scheme"): te.attrib["scheme"] = tag.scheme
+            if tag.get("label"): te.attrib["label"] = tag.label
 
-    PersonElement(root, "{http://www.w3.org/2005/Atom}author", author)
+    PersonElement(root, "author", feed.feed.get("author_detail"))
 
-    for entry in entries:
-        ee = SubElement(root, "{http://www.w3.org/2005/Atom}entry")
-        TextElement(ee, "{http://www.w3.org/2005/Atom}title", entry.get("title_detail"))
+    for entry in feed.entries:
+        ee = SubElement(root, "entry")
+        TextElement(ee, "title", entry.get("title_detail"))
         if entry.has_key("links"):
             for link in entry.links:
-                LinkElement(ee, "{http://www.w3.org/2005/Atom}link", link)
-        TextElement(ee, "{http://www.w3.org/2005/Atom}summary", entry.get("summary_detail"))
-        TextElement(ee, "{http://www.w3.org/2005/Atom}content", entry.get("content_detail"))
-        DateTimeElement(ee, "{http://www.w3.org/2005/Atom}published", entry, "published")
-        DateTimeElement(ee, "{http://www.w3.org/2005/Atom}updated", entry, "updated")
-        SubElementIf(ee, "{http://www.w3.org/2005/Atom}id", entry.get("id"))
-        PersonElement(ee, "{http://www.w3.org/2005/Atom}author", entry.get("author_detail"))
-        PersonElement(ee, "{http://www.w3.org/2005/Atom}publisher", entry.get("publisher_detail"))
+                LinkElement(ee, "link", link)
+        TextElement(ee, "summary", entry.get("summary_detail"))
+        TextElement(ee, "content", entry.get("content_detail"))
+        DateTimeElement(ee, "published", entry, "published")
+        DateTimeElement(ee, "updated", entry, "updated")
+        SubElementIf(ee, "id", entry.get("id"))
+        PersonElement(ee, "author", entry.get("author_detail"))
+        PersonElement(ee, "publisher", entry.get("publisher_detail"))
         if entry.has_key("contributors"):
             for contributor in entry.contributors:
-                PersonElement(ee, "{http://www.w3.org/2005/Atom}contributor", contributor)
-        if source:
-            CreateSourceElement(ee, source)
+                PersonElement(ee, "contributor", contributor)
+        CreateSourceElement(ee, entry.get("source"))
 
     return root
