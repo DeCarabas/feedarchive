@@ -1,0 +1,16 @@
+Python scripts for downloading feeds, including enclosures, and
+merging them with an existing feed. This allows me to archive feeds
+that have small windows of validity. (e.g., podcasts that only ever
+list the most recent item.)
+
+feedarchive.py looks for a feed.ini in the current directory that
+tells it what to do:
+
+[feed]
+url=http://rss.feed/to/fetch
+id=<id of feed to generate>
+title=<title of feed to generate>
+publish=<URL where the feed will be published>
+
+There are many possible improvements, but this does what I need, for
+now.
