@@ -16,11 +16,11 @@ def TextElement(root, name, detail_value):
 def LinkElement(root, name, link):
     if link:
         le = SubElement(root, name)
-        if (link.has_key("rel")): le.attrib["rel"] = link.rel
-        if (link.has_key("title")): le.attrib["title"] = link.title
-        if (link.has_key("type")):
-            le.attrib["type"] = link.type
-        if (link.has_key("href")): le.attrib["href"] = link.href
+        AttribIf(le, "rel", link.get("rel"))
+        AttribIf(le, "title", link.get("title"))
+        AttribIf(le, "type", link.get("type"))
+        AttribIf(le, "href", link.get("href"))
+        AttribIf(le, "length", link.get("length"))
     
 def PersonElement(root, name, detail):
     if detail:
@@ -31,6 +31,10 @@ def PersonElement(root, name, detail):
             SubElement(ae, "href").text = detail.href
         if detail.has_key("email"):
             SubElement(ae, "email").text = detail.email
+
+def AttribIf(elem, name, text):
+    if text:
+        elem.attrib[name] = text
 
 def SubElementIf(root, name, text):
     if text:

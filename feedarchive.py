@@ -2,9 +2,11 @@
 # Not terribly complete, but perhaps sufficient.
 # TODO: Mirror everything that could be local, local.
 #
-from elementtree.ElementTree import ElementTree
+from elementtree.ElementTree import ElementTree, tostring
+import xml.dom.minidom
 import feedwriter
 import feedparser
+import rsswriter
 import urllib
 import os
 import os.path
@@ -20,6 +22,7 @@ def progress(blocks, size, fileSize):
 
 def archiveFeed(config):
     url = config.get("feed","url")
+    publish = config.get("feed", "publish")
     print "Fetching", url
     
     fr = feedparser.parse(url)
@@ -32,10 +35,10 @@ def archiveFeed(config):
                 try:
                     print "Getting", link.href, "as", local
                     urllib.urlretrieve(link.href, local, progress)
-                    link.href = local
                 except:
                     if (os.path.exists(local)): os.unlink(local)
                     raise
+            link.href = publish + local
 
     # Merge the remote feed into the local feed
     #
@@ -50,6 +53,12 @@ def archiveFeed(config):
         fl = feedparser.FeedParserDict({
             "feed" : feedparser.FeedParserDict({
                 "id" : config.get("feed","id"),
+                "link" : publish + "feed.rss",
+                "links" : [feedparser.FeedParserDict({
+                    "rel" : "self",
+                    "type" : "application/atom+xml",
+                    "href" : publish + "feed.xml"
+                })],
                 "title_detail" : feedparser.FeedParserDict({
                     "type" : "text",
                     "value" : config.get("feed", "title")
@@ -65,6 +74,9 @@ def archiveFeed(config):
     #
     atomRoot = feedwriter.GetFeedElement(fl)
     ElementTree(atomRoot).write("feed.xml")
+
+    rssRoot = rsswriter.GetFeedElement(fl)
+    ElementTree(rssRoot).write("feed.rss")
 
 config = ConfigParser.RawConfigParser()
 config.read("feed.ini")
