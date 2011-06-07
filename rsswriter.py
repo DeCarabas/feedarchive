@@ -1,4 +1,4 @@
-# Write out an atom feed for the in-memory format described here:
+# Write out an RSS 2.0 feed for the in-memory format described here:
 # http://feedparser.org/
 #
 from elementtree.ElementTree import Element, SubElement, ElementTree
