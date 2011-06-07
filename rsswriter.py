@@ -49,7 +49,10 @@ def GetFeedElement(feed):
     root = SubElement(rss, "channel")
 
     TextElement(root, "title", feed.feed.get("title_detail"))
-    SubElementIf(root, "link", feed.feed.get("link"))
+    if feed.feed.has_key("links"):
+        for link in feed.feed.links:
+            if link.rel != "self": continue
+            SubElementIf(root, "link", link.href)
     
     TextElement(root, "description", feed.feed.get("subtitle_detail"))
     TextElement(root, "copyright", feed.feed.get("rights_detail"))
