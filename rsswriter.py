@@ -61,9 +61,9 @@ def GetFeedElement(feed):
     if feed.feed.has_key("image"):
         im = feed.feed.image
         ie = SubElement(root, "image")
-        SubElementIf(ie, "url", image.get("href"))
-        SubElementIf(ie, "title", image.get("title"))
-        SubElementIf(ie, "link", image.get("link"))
+        SubElementIf(ie, "url", im.get("href"))
+        SubElementIf(ie, "title", im.get("title"))
+        SubElementIf(ie, "link", im.get("link"))
 
     if feed.feed.has_key("tags"):
         for tag in feed.feed.tags:
