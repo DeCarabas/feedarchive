@@ -16,6 +16,9 @@ import sys
 import ConfigParser
 import time
 import httplib2
+import logging
+
+
 
 def progress(blocks, size, fileSize):
     bytes = blocks * size
@@ -30,12 +33,14 @@ def downloadLocal(url):
     forces me to load the entire response into memory. If we got
     streaming support in httplib2 then we could use it.
     """
-    if not os.path.exists("local"): os.makedirs("local")
+    localDir = os.path.join(baseDir, "local")
+    if not os.path.exists(localDir): os.makedirs(localDir)
 
-    local = os.path.join("local", httplib2.safename(url))
+    local = os.path.join(localDir, httplib2.safename(url))
     if not os.path.exists(local):
         try:
             print "Getting", url, "as", local
+            logging.info("Getting %s as %s", url, local)
             urllib.urlretrieve(url, local, progress)
         except:
             if (os.path.exists(local)): os.unlink(local)
@@ -78,6 +83,7 @@ def archiveFeed(config):
     # Download the feed and also its enclosures.
     #
     print "Fetching", url
+    logging.info("Fetching %s", url)
     fr = feedparser.parse(url)
     convertLocal(fr, publish)
 
@@ -120,16 +126,26 @@ def archiveFeed(config):
     #
     atomRoot = feedwriter.GetFeedElement(fl)
     if os.path.exists("feed.xml"):
-        os.renames("feed.xml",os.path.join("backup",backupRoot+".xml"))
-    ElementTree(atomRoot).write("feed.xml")
+        os.renames("feed.xml",os.path.join(baseDir,"backup",backupRoot+".xml"))
+    ElementTree(atomRoot).write(os.path.join(baseDir,"feed.xml"))
 
     rssRoot = rsswriter.GetFeedElement(fl)
     if os.path.exists("feed.rss"):
-        os.renames("feed.rss",os.path.join("backup",backupRoot+".rss"))
-    ElementTree(rssRoot).write("feed.rss")
+        os.renames("feed.rss",os.path.join(baseDir,"backup",backupRoot+".rss"))
+    ElementTree(rssRoot).write(os.path.join(baseDir,"feed.rss"))
 
+if len(sys.argv) > 1:
+    configFile = sys.argv[1]
+else:
+    configFile = os.path.join(".", "feed.ini")
+
+baseDir = os.path.dirname(os.path.abspath(configFile))
+
+print "Using config in", configFile
+print "Base directory", baseDir
+    
 config = ConfigParser.RawConfigParser()
-config.read("feed.ini")
+config.read(configFile)
 archiveFeed(config)
 print "Done"
 
