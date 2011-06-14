@@ -77,6 +77,8 @@ def convertLocal(feed, base):
 
 
 def archiveFeed(config):
+    global baseDir, feedName, rssName
+
     url = config.get("feed","url")
     publish = config.get("feed", "publish")
         
@@ -89,8 +91,8 @@ def archiveFeed(config):
 
     # Merge the remote feed into the local feed
     #
-    if os.path.exists("feed.xml"):
-        fl = feedparser.parse("feed.xml")
+    if os.path.exists(feedName):
+        fl = feedparser.parse(feedName)
         em = dict([(e.id, True) for e in fl.entries])
         for entry in fr.entries:
             if not em.has_key(entry.id):
@@ -125,14 +127,14 @@ def archiveFeed(config):
     # Write out the local feed.
     #
     atomRoot = feedwriter.GetFeedElement(fl)
-    if os.path.exists("feed.xml"):
-        os.renames("feed.xml",os.path.join(baseDir,"backup",backupRoot+".xml"))
-    ElementTree(atomRoot).write(os.path.join(baseDir,"feed.xml"))
+    if os.path.exists(feedName):
+        os.renames(feedName,os.path.join(baseDir,"backup",backupRoot+".xml"))
+    ElementTree(atomRoot).write(feedName)
 
     rssRoot = rsswriter.GetFeedElement(fl)
-    if os.path.exists("feed.rss"):
-        os.renames("feed.rss",os.path.join(baseDir,"backup",backupRoot+".rss"))
-    ElementTree(rssRoot).write(os.path.join(baseDir,"feed.rss"))
+    if os.path.exists(rssName):
+        os.renames(rssName,os.path.join(baseDir,"backup",backupRoot+".rss"))
+    ElementTree(rssRoot).write(rssName)
 
 if len(sys.argv) > 1:
     configFile = sys.argv[1]
@@ -140,6 +142,8 @@ else:
     configFile = os.path.join(".", "feed.ini")
 
 baseDir = os.path.dirname(os.path.abspath(configFile))
+feedName = os.path.join(baseDir, "feed.xml")
+rssName = os.path.join(baseDir, "feed.rss")
 
 print "Using config in", configFile
 print "Base directory", baseDir
